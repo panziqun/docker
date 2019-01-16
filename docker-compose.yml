@@ -1,0 +1,55 @@
+version: "3"
+services:
+  docker-nginx:
+    image: nginx:alpine
+    container_name: docker-nginx
+    ports:
+      - 80:80
+    volumes:
+      - ./www:/usr/share/nginx/html
+      - ./nginx/log:/var/log/nginx
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - docker-php
+    links:
+      - docker-php
+    networks: 
+      - docker-net
+  docker-php:
+    build: ./php
+    container_name: docker-php
+    volumes:
+      - ./php/php-fpm.d/www.conf:/usr/local/etc/php-fpm.d/www.conf
+      - ./www:/var/www/html
+      - ./php/log:/usr/local/var/log
+    networks: 
+      - docker-net
+  docker-mysql:
+    image: mysql:8
+    container_name: docker-mysql
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql/conf/my.cnf:/etc/mysql/my.cnf
+      - ./mysql/data:/var/lib/mysql
+      - ./mysql/log:/var/log/mysql
+    networks:
+      - docker-net
+    environment:
+      MYSQL_ROOT_PASSWORD: "123456"
+  docker-rabbitmq:
+    image: rabbitmq:3-management
+    container_name: docker-rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - ./rabbitmq/conf:/etc/rabbitmq
+      - ./rabbitmq/data:/var/lib/rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=root
+      - RABBITMQ_DEFAULT_PASS=123456
+    networks: 
+      - docker-net
+networks: 
+  docker-net:
